@@ -1,0 +1,10 @@
+build
+!**/.gitkeep
+depends
+!depends/CMakeLists.txt
+setup
+**/*.o
+**/*.a
+**/*.so
+**/*.make
+**/*.cmake
