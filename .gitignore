@@ -1,7 +1,8 @@
 build
 !**/.gitkeep
-depends
+depends/**
 !depends/CMakeLists.txt
+!depends/libsnark
 setup
 **/*.o
 **/*.a
