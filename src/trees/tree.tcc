@@ -226,7 +226,7 @@ tree<aggregation_system, N>& tree<aggregation_system, N>::aggregate_proofs()
 
     for (size_t i=0; i<arity; i++)
     {
-        primary_inputs[i] = *children[i].node_values.primary_input;
+        primary_inputs[i] = *children[i].node_values.primary_input.get();
         verification_keys[i] = *children[i].node_values.verification_key;
         proofs[i] = *children[i].node_values.proof;
     }

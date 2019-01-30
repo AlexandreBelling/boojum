@@ -14,7 +14,10 @@ void initialize()
     libff::inhibit_profiling_counters = true;
 
     dual_basT::initialize_curves();
+    std::cout << "Done all curves" << std::endl;
+
     dual_basT::build_circuits();
+    std::cout << "Done all circuits" << std::endl;
 
     auto& forward = forwardT::get_instance();
     auto& backward = backwardT::get_instance();
@@ -33,9 +36,6 @@ void aggregate_serialize_deserialize_verify()
 
     auto& forward = forwardT::get_instance();
     auto& backward = backwardT::get_instance();
-
-    std::cout << "vvvvvvvvvvvvvvvvvvv : ";
-    std::cout << typeid(forward).name() << std::endl;
 
     std::cout << "Example circuit" << std::endl;
     auto example_tree = tree<dual_basT, 0>::as_example(50);

@@ -9,7 +9,7 @@ using basicCycleT = cycle<libff::mnt4_pp, libff::mnt6_pp>;
 using dual_basT = basic_aggregation_system<basicCycleT, 2>;
 
 using forwardT = dual_basT::template get_aggregation<0>::type;
-using backwardT = dual_basT::template get_aggregation<0>::type;
+using backwardT = dual_basT::template get_aggregation<1>::type;
 
 template<>
 template<>

@@ -78,10 +78,7 @@ template<typename cycle, std::size_t fromN, std::size_t arityN>
     );
 
 #if NDEBUG
-    //std::cout << "vvvvvvvvvvvvvvvvvvv : ";
-    //std::cout << typeid(*this).name() << endl;
     std::cout << circuit->pb.primary_input() << " : Was prim" << std::endl;
-    std::cout << keypair->pk << " : Was pk" << std::endl;
 # endif
 
     return r1cs_ppzksnark_prover<toT>(

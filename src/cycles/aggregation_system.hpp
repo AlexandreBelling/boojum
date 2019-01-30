@@ -34,6 +34,9 @@ public:
 
     static void initialize_curves()
     {
+# if NDEBUG
+    std::cout << "Initializing curves : size? " << cycle::size << std::endl;
+# endif
         _init_curve<cycle::size - 1>();
     }
 
