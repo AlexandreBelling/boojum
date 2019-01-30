@@ -9,7 +9,7 @@
  * 
  * @tparam ppTs 
  */
-template<typename T, typename... ppTs>
+template<typename... ppTs>
 class cycle {
     
 public:
