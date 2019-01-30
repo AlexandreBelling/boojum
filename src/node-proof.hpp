@@ -32,7 +32,7 @@ public:
     node_proof() = default;
 
     node_proof(size_t num_constraints);
-
+ 
     // Constructor for leaf nodes
     node_proof(
         r1cs_ppzksnark_primary_input<curve> primary_input,

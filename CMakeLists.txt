@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(snark-aggregation CXX)
+project(boojum CXX)
 
 set(
   CURVE

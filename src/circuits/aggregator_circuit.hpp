@@ -10,41 +10,47 @@
 
 using namespace libsnark;
 
-template<typename ppT, typename other_curve>
+template<typename from, typename to>
 class aggregator_circuit {
 public:
-    typedef libff::Fr<ppT> FieldT;
-    typedef libff::Fr<other_curve> other_field;
 
-    protoboard<FieldT> pb;
+    using to_field = libff::Fr<to>;
+    using from_field = libff::Fr<from>;
+
+    protoboard<to_field> pb;
 
     size_t aggregation_arity;
 
-    pb_variable_array<FieldT> aggregator_input_var;
+    pb_variable_array<to_field> aggregator_input_var;
 
-    std::vector<pb_variable_array<FieldT>> verifier_inputs_bits;
+    std::vector<pb_variable_array<to_field>> verifier_inputs_bits;
 
-    std::vector<pb_variable_array<FieldT>> verification_keys_bits;
-    std::vector<r1cs_ppzksnark_verification_key_variable<ppT>> verification_keys;
+    std::vector<pb_variable_array<to_field>> verification_keys_bits;
+    std::vector<r1cs_ppzksnark_verification_key_variable<to>> verification_keys;
 
-    std::vector<r1cs_ppzksnark_proof_variable<ppT>> proofs;
-    std::vector<pb_variable_array<FieldT>> proofs_contents;
-    std::vector<multipacking_gadget<FieldT> > unpack_proofs;
-    std::vector<pb_variable_array<FieldT>> proofs_bits;
+    std::vector<r1cs_ppzksnark_proof_variable<to>> proofs;
+    std::vector<pb_variable_array<to_field>> proofs_contents;
+    std::vector<multipacking_gadget<to_field> > unpack_proofs;
+    std::vector<pb_variable_array<to_field>> proofs_bits;
 
-    std::vector<pb_variable_array<FieldT>> block_inputs_vars;
-    std::shared_ptr<block_variable<FieldT>> block_for_input_verification;
-    std::shared_ptr<CRH_with_field_out_gadget<FieldT>> hash_incoming_proof;
+    std::vector<pb_variable_array<to_field>> block_inputs_vars;
+    std::shared_ptr<block_variable<to_field>> block_for_input_verification;
+    std::shared_ptr<CRH_with_field_out_gadget<to_field>> hash_incoming_proof;
 
-    pb_variable<FieldT> verification_result;
-    std::vector<r1cs_ppzksnark_verifier_gadget<ppT>> verifiers;
+    pb_variable<to_field> verification_result;
+    std::vector<r1cs_ppzksnark_verifier_gadget<to>> verifiers;
 
     aggregator_circuit(size_t aggregation_arity);
     void generate_r1cs_constraints();
     void generate_r1cs_witness(
-        std::vector<r1cs_ppzksnark_verification_key<other_curve>> verification_key_value,
-        std::vector<std::vector<other_field>> verifier_input_values,
-        std::vector<r1cs_ppzksnark_proof<other_curve>> proof_value
+        std::vector<r1cs_ppzksnark_verification_key<from>> verification_key_value,
+        std::vector<r1cs_ppzksnark_primary_input<from>> verifier_input_values,
+        std::vector<r1cs_ppzksnark_proof<from>> proof_value
+    );
+    void generate_primary_inputs(
+        std::vector<r1cs_ppzksnark_verification_key<from>> verification_key_value,
+        std::vector<r1cs_ppzksnark_primary_input<from>> verifier_input_values,
+        std::vector<r1cs_ppzksnark_proof<from>> proof_value
     );
 };
 

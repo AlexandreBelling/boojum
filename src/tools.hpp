@@ -63,7 +63,6 @@ private:
     }
 
     void load_key_pair();
-
     void save_key_pair();
 };
 

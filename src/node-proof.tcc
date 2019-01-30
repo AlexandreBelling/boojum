@@ -9,16 +9,15 @@
 using namespace libsnark;
 
 template<typename curve, typename other_curve>
-std::ostream& operator<<(std::ostream &out, const node_proof<curve, other_curve> &obj){
+std::ostream& operator<<(std::ostream &out, const node_proof<curve, other_curve> &obj)
+{
     out << obj.leaf << OUTPUT_NEWLINE;
-    // std::cout << "Serialized leaf : " << obj.leaf << endl;
     out << obj.primary_input[0] << OUTPUT_NEWLINE;
-    // cout << "serialized input : " << obj.primary_input[0] << endl;
     out << obj.proof << OUTPUT_NEWLINE;
-    // cout << " serialized proof : " << obj.proof << endl;
+    
     if (obj.leaf) {
         out << obj.verification_key << OUTPUT_NEWLINE;
-        // cout << "serialized vk : " << obj.verification_key << endl; 
+        
     }
 
     return out;
@@ -26,22 +25,22 @@ std::ostream& operator<<(std::ostream &out, const node_proof<curve, other_curve>
 
 template<typename curve, typename other_curve>
 std::istream& operator>>(std::istream &in, node_proof<curve, other_curve> &obj){
-    // input size must be set to 1
+    
     obj.primary_input.resize(1);
     in >> obj.leaf;
     libff::consume_OUTPUT_NEWLINE(in);
-    // std::cout << "Deserialized leaf : " << obj.leaf << endl;
+    
     in >> obj.primary_input[0];
     libff::consume_OUTPUT_NEWLINE(in);
-    // std::cout << "Deserialized input : " << obj.primary_input[0] << endl;
+    
     in >> obj.proof;
     libff::consume_OUTPUT_NEWLINE(in);
-    // std::cout << "Deserialized proof :" << obj.proof << endl;
+    
     if (obj.leaf) { 
         in >> obj.verification_key;
         libff::consume_OUTPUT_NEWLINE(in);
-        //std::cout << "Deserialized vk : " << obj.verification_key  << endl;
     }
+
     return in;
 }
 
@@ -108,7 +107,7 @@ node_proof<curve, other_curve> node_proof<curve,other_curve>::from_aggregation(
         }
     }
 
-    std::vector<r1cs_ppzksnark_primary_input<other_curve>> primary_inputs;
+    vector<r1cs_ppzksnark_primary_input<other_curve>> primary_inputs;
     vector<r1cs_ppzksnark_verification_key<other_curve>> verification_keys;
     vector<r1cs_ppzksnark_proof<other_curve>> input_proofs;
 
@@ -144,10 +143,6 @@ void node_proof<curve, other_curve>::to_string(std::string &buff){
     data << *this;
     buff = data.str();
 
-    cout << "leaf : " << leaf << endl;
-    cout << "proof : " << proof << endl;
-    cout << "input : " << primary_input << endl;
-
     # ifdef DEBUG
     std::cout << "Serialized node proof of size : " << buff.size() << endl;
     # endif
@@ -160,9 +155,6 @@ void node_proof<curve, other_curve>::to_string(unsigned char* &buff)
     to_string(buff_str);
 
     uint32_t buff_size = buff_str.size();
-
-    cout << "buff_size" << buff_size << endl;
-
     size_t offset = sizeof(uint32_t);
 
     buff = new unsigned char[buff_size + offset + 1];
@@ -183,10 +175,6 @@ void node_proof<curve,other_curve>::from_string(
         auto& tool = tools<curve, other_curve>::get_instance();
         verification_key = tool.key_pair->vk;
     }
-
-    cout << "leaf : " << leaf << endl;
-    cout << "proof : " << proof << endl;
-    cout << "input : " << primary_input << endl;
 }
 
 template<typename curve, typename other_curve>
@@ -202,13 +190,8 @@ void node_proof<curve,other_curve>::from_string(
 
     string buff_str; 
     buff_str.assign(&buff[offset], &buff[offset]+(size_t)buff_size);
-    //memcpy(&buff_str[0], buff+offset, (size_t)buff_size - 1);
 
     from_string(buff_str);
-
-    cout << "leaf : " << leaf << endl;
-    cout << "proof : " << proof << endl;
-    cout << "input : " << primary_input << endl;
 }
 
 # endif

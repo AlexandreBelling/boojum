@@ -5,8 +5,14 @@ all:
 	rm -rf ./build/*
 	rm -rf ./objects/*
 	#// rm -rf ./setup/*
-	cd build && cmake .. && make snark-aggregation
-	find . -name \*.a -exec cp {} ./objects \;
-	find . -name \*.o -exec cp {} ./objects \;
-	find . -name \*.so -exec cp {} ./objects \;
-	go test ; notify-send 'Done testing'
+	cd build && cmake .. && make libboojum
+	#find . -name \*.a -exec cp {} ./objects \;
+	#find . -name \*.o -exec cp {} ./objects \;
+	#find . -name \*.so -exec cp {} ./objects \;
+	#go test ; notify-send 'Done testing'
+
+clean-build:
+	mkdir -p build
+	rm -rf ./build/*
+
+clean

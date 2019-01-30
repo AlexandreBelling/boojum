@@ -2,7 +2,7 @@
 # define SNARK_IMPL_TCC_
 
 # include <stdlib.h>
-# include "snark-aggregation.h"
+# include "libboojum.h"
 # include <iostream>
 # include "libff/common/profiling.hpp"
 # include "libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp"
@@ -100,7 +100,7 @@ void prove_aggregation(
             right_node_buff
         );
     } else {
-        prove_aggregation<curve_A_pp, curve_B_pp>(
+        prove_aggregation<curve_B_pp, curve_A_pp>(
             output_node_buff,
             left_node_buff,
             right_node_buff

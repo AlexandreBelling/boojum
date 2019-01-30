@@ -1,27 +1,27 @@
 include_directories(.)
 
 add_library(
-  snark-aggregation
+  libboojum
 
   STATIC
 
-  snark-aggregation.cpp
+  libboojum.cpp
 )
 
 target_link_libraries(
-  snark-aggregation
+  libboojum
 
   snark
 )
 
 target_link_libraries(
-  snark-aggregation
+  libboojum
 
   ff
 )
 
 target_include_directories(
-  snark-aggregation
+  libboojum
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark
@@ -30,23 +30,42 @@ target_include_directories(
 )
 
 set_target_properties(
-  snark-aggregation PROPERTIES
+  libboojum PROPERTIES
 
-  PUBLIC_HEADER snark-aggregation.h
+  PUBLIC_HEADER libboojum.h
 )
+
+# add_executable(
+#   test-aggregation
+
+#   test-aggregation.cpp
+# )
+# target_link_libraries(
+#   test-aggregation
+
+#   snark
+# )
+# target_include_directories(
+#   test-aggregation
+
+#   PUBLIC
+#   ${DEPENDS_DIR}/libsnark
+#   ${DEPENDS_DIR}/libsnark/depends/libfqfft
+#   ${DEPENDS_DIR}/libsnark/depends/libff
+# )
 
 add_executable(
-  test-aggregation
+  test-curve-init
 
-  test-aggregation.cpp
+  test_curve_initialization.cpp
 )
 target_link_libraries(
-  test-aggregation
+  test-curve-init
 
   snark
 )
 target_include_directories(
-  test-aggregation
+  test-curve-init
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark
