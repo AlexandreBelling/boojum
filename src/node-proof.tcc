@@ -103,7 +103,7 @@ node_proof<curve, other_curve> node_proof<curve,other_curve>::from_aggregation(
     for(auto child : childrens){
         if (!child.verify()) {
             std::cout << "Failed verification" << std::endl;
-             throw "Left proof is fake"; 
+            throw "Left proof is fake"; 
         }
     }
 

@@ -6,6 +6,15 @@
 # include <trees/node.hpp>
 
 template<typename aggregation_system, std::size_t N>
+class tree;
+
+template<typename aggregation_system, size_t N>
+std::ostream& operator<<(std::ostream& out, const tree<aggregation_system, N> &obj);
+
+template<typename aggregation_system, size_t N>
+std::istream& operator>>(std::istream& in, tree<aggregation_system, N> &obj);
+
+template<typename aggregation_system, std::size_t N>
 class tree {
 
 public:
@@ -24,7 +33,7 @@ public:
     std::vector<tree<aggregation_system, (N-1)%(cycleT::size)>> children;
     node<aggregationT> node_values;
 
-private:
+public:
 
     tree(){};
     tree(std::vector<sub_tree> &_children) : children(_children) {}
@@ -34,9 +43,6 @@ public:
 
     unsigned char * to_string();
     static tree from_string(unsigned char *);
-
-    friend std::ostream& operator<<(std::ostream& out, const tree obj);
-    friend std::istream& operator>>(std::istream& in, tree obj);
 
     static tree<aggregation_system, N> from_aggregation(std::vector<sub_tree> children)
     {

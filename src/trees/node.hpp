@@ -6,26 +6,21 @@
 # include <circuits/aggregator_circuit.hpp>
 # include <libsnark/relations/constraint_satisfaction_problems/r1cs/examples/r1cs_examples.hpp>
 
-template<typename aggregation>
+template<typename aggregationT>
 class node {
 
 public:
 
-    using fromT         = typename aggregation::fromT;
-    using toT           = typename aggregation::toT;
+    using fromT         = typename aggregationT::fromT;
+    using toT           = typename aggregationT::toT;
     using field_fromT   = typename fromT::Fp_type;
     using field_toT     = typename toT::Fp_type;
 
 public:
 
-    node() : leaf(false) {}
-
-    node(r1cs_ppzksnark_proof<toT>& _proof) :
-        leaf(false)
-    {
-        proof.reset(_proof);
+    node() : leaf(false) {
         verification_key.reset(
-            aggregation::get_instance().key_pair->vk
+            &aggregationT::get_instance().keypair->vk
         );
     }
 
@@ -49,9 +44,9 @@ public:
     std::shared_ptr<r1cs_ppzksnark_verification_key<toT>>   verification_key;
     std::shared_ptr<r1cs_ppzksnark_proof<toT>>              proof;
 
-    static node<aggregation> as_example(std::size_t num_constraints);
+    static node<aggregationT> as_example(std::size_t num_constraints);
 
-    static node<aggregation> from_leaf(
+    static node<aggregationT> from_leaf(
         r1cs_ppzksnark_primary_input<toT>       _primary_input,
         r1cs_ppzksnark_verification_key<toT>    _verification_key,
         r1cs_ppzksnark_proof<toT>               _proof
@@ -63,7 +58,7 @@ public:
         );
     };
 
-    static node<aggregation> from_aggregation(
+    static node<aggregationT> from_aggregationT(
         r1cs_ppzksnark_proof<toT> _proof
     ) {
         return node(
@@ -71,7 +66,7 @@ public:
         );
     }
 
-    node<aggregation>& set_inputs(
+    node<aggregationT>& set_inputs(
         r1cs_ppzksnark_primary_input<toT> new_primary_input
     ) {
         primary_input = make_shared<
@@ -80,13 +75,10 @@ public:
         return *this;
     }
 
-    node<aggregation>& set_proof(
+    node<aggregationT>& set_proof(
         r1cs_ppzksnark_proof<toT> new_proof
     ) {
-        std::cout << "Getting in set proof" << std::endl;
-        proof = make_shared<
-            r1cs_ppzksnark_proof<toT>
-        >(new_proof);
+        proof = make_shared<decltype(new_proof)>(new_proof);
         return *this;
     }
 

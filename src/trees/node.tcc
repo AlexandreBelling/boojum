@@ -35,6 +35,7 @@ node<aggregation> node<aggregation>::as_example(std::size_t num_constraints)
 template<typename aggregation>
 bool node<aggregation>::verify()
 {
+
     return r1cs_ppzksnark_verifier_strong_IC<toT>(
         *verification_key,
         *primary_input,

@@ -10,7 +10,7 @@
 using namespace std;
 
 template<typename aggregation_system, size_t N>
-std::ostream& operator<<(std::ostream& out, tree<aggregation_system, N> obj)
+std::ostream& operator<<(std::ostream& out, const tree<aggregation_system, N> &obj)
 {
     using TreeT = tree<aggregation_system, N>;
 
@@ -33,32 +33,32 @@ std::ostream& operator<<(std::ostream& out, tree<aggregation_system, N> obj)
 }
 
 template<typename aggregation_system, size_t N>
-std::istream& operator>>(std::istream& in, tree<aggregation_system, N> obj)
+std::istream& operator>>(std::istream& in, tree<aggregation_system, N> &obj)
 {
     using TreeT = tree<aggregation_system, N>;
     using toT = typename TreeT::toT;
 
     in >> obj.node_values.leaf; libff::consume_OUTPUT_NEWLINE(in);
 
-    libsnark::r1cs_ppzksnark_proof<toT> _proof;
+    r1cs_ppzksnark_proof<toT> _proof;
     in >> _proof; libff::consume_OUTPUT_NEWLINE(in);
-    obj.node_values.primary_input = make_shared(_proof);
+    obj.node_values.proof = make_shared<decltype(_proof)>(_proof);
 
     if (obj.node_values.leaf)
     {
         r1cs_ppzksnark_primary_input<toT> _input;
         in >> _input; libff::consume_OUTPUT_NEWLINE(in);
-        obj.node_values.primary_input = make_shared(_input);
+        obj.node_values.primary_input = make_shared<decltype(_input)>(_input);
 
         r1cs_ppzksnark_verification_key<toT> _vk;
         in >> _vk; libff::consume_OUTPUT_NEWLINE(in);
-        obj.node_values.verification_key = make_shared(_vk);
+        obj.node_values.verification_key = make_shared<decltype(_vk)>(_vk);
 
     } else {
         obj.children.resize(TreeT::arity);
-        for(size_t i=0; i<TreeT::arity; i++)
+        for(size_t k=0; k<TreeT::arity; k++)
         {
-            in >> obj.children[i]; libff::consume_OUTPUT_NEWLINE(in);
+            in >> obj.children[k]; libff::consume_OUTPUT_NEWLINE(in);
         }
     }
 
@@ -71,30 +71,22 @@ tree<aggregation_system, N> tree<aggregation_system, N>::from_string(unsigned ch
 {
 
     uint32_t buff_size;
+    string buff_str;
     size_t offset = sizeof(uint32_t);
     stringstream ss;
     tree<aggregation_system, N> res;
 
+    std::cout << "Cast the buffer in a string, then a stringstream" << std::endl;
     /**
      * @brief Cast the buffer in a string, then a stringstream
      * 
      */
     memcpy(&buff_size, buff, offset);
-    string buff_str;
-    buff_str.assign(buff, &buff[buff_size-1]);
+
     ss << buff_str;
 
     ss.rdbuf()->pubseekpos(0, std::ios_base::in);
-
-    /**
-     * @brief Skip the headers
-     * 
-     */
-    size_t garbage;
-    ss >> garbage; libff::consume_OUTPUT_NEWLINE(ss);
-    ss >> garbage; libff::consume_OUTPUT_NEWLINE(ss);
-    ss >> garbage; libff::consume_OUTPUT_NEWLINE(ss);
-    ss >> garbage; libff::consume_OUTPUT_NEWLINE(ss);
+    ss.seekg(4*offset);
 
     /**
      * @brief Deserialize the object
@@ -109,6 +101,8 @@ unsigned char * tree<aggregation_system, N>::to_string()
 {
     using TreeT = tree<aggregation_system, N>;
     const size_t offset = sizeof(uint32_t);
+    const size_t arity = TreeT::aggregationT::arity;
+    const int zero = 0;
     stringstream ss;
 
     /**
@@ -119,16 +113,17 @@ unsigned char * tree<aggregation_system, N>::to_string()
      * 3) Identify the aggregation steps so that the deserializer can use the proper class
      * 4) Identify the arity of the aggregation
      */
-    ss << string("0", offset) << OUTPUT_NEWLINE;
-    ss << (uint64_t)0 << OUTPUT_NEWLINE;
-    ss << (uint32_t)N << OUTPUT_NEWLINE;
-    ss << (uint32_t)TreeT::aggregationT::arity << OUTPUT_NEWLINE;
+    unsigned char header[offset*4];
+    memset(header, '\0', offset*4);
+    memset(&header[offset], (uint32_t)0, 1);
+    memset(&header[offset*2], (uint32_t)N, 1);
+    memset(&header[offset*3], (uint32_t)arity, 1);
 
     /**
      * @brief Stream the content of the tree
      * 
      */
-    ss << *this;
+    ss << header << *this;
 
     /** 
      * Writes the length of the buffer in a char[4]
@@ -138,20 +133,13 @@ unsigned char * tree<aggregation_system, N>::to_string()
     memcpy(len_str, &len, offset);
 
     /**
-     * @brief : Writes the length of the buffer in the stream
-     * 
-     */
-    ss.seekp(0);
-    ss << len_str;
-    ss.seekp(len);
-
-    /**
      * @brief Copy the stream contents in the output buffer
      * 
      */
     string buff_str = ss.str();
     auto buff = new unsigned char[buff_str.size() + 1];
     memcpy(buff, buff_str.c_str(), buff_str.size());
+    memcpy(buff, len_str, offset);
 
     return buff;
 }
@@ -240,6 +228,10 @@ tree<aggregation_system, N>& tree<aggregation_system, N>::aggregate_proofs()
             proofs
         )
     );
+
+# if NDEBUG
+    std::cout << "node value set" << std::endl;
+# endif
 
     return *this;
 }

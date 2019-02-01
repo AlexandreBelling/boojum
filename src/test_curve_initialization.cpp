@@ -45,13 +45,17 @@ void aggregate_serialize_deserialize_verify()
     std::cout << "Constructing the proof" << std::endl;
     auto aggregated_tree = tree<dual_basT, 1>::from_aggregation(children);
 
-    std::cout << "Aggregating inputs" << std::endl;
-    aggregated_tree.aggregate_inputs();
-
     std::cout << "Aggregating proofs" << std::endl;
-    aggregated_tree.aggregate_proofs();
+    aggregated_tree.aggregate_inputs().aggregate_proofs();
 
-    std::cout << "Valid proof : " << aggregated_tree.verify() << std::endl;
+    std::cout << "Serializing the proofs" << std::endl;
+    unsigned char * serialized = aggregated_tree.to_string();
+    
+    std::cout << "Deserializing the proofs" << std::endl;
+    auto deserialized = tree<dual_basT, 1>::from_string(serialized);
+
+    std::cout << "Valid proof : " << std::endl; 
+    std::cout << deserialized.verify() << std::endl;
 
 }
 
@@ -59,6 +63,7 @@ int main()
 {
     initialize();
     aggregate_serialize_deserialize_verify();
+    return 0;
 }
 
 # endif

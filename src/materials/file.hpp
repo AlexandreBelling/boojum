@@ -24,12 +24,19 @@ public:
 
     static void load_from_file(std::string path, T& objIn)
     {
+        int count = 0;
+        std::cout << ++count << std::endl;
         std::stringstream ss;
         std::ifstream fh(path, std::ios::binary);
+        std::cout << ++count << std::endl;
         ss << fh.rdbuf();
+        std::cout << ++count << std::endl;
         fh.close();
+        std::cout << ++count << std::endl;
         ss.rdbuf()->pubseekpos(0, std::ios_base::in);
+        std::cout << ++count << std::endl;
         ss >> objIn;
+        std::cout << ++count << std::endl;
     }
 
     static void load_from_file(T& objIn, std::string dir, std::string file){
