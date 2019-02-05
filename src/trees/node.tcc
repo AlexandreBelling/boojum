@@ -37,9 +37,9 @@ bool node<aggregation>::verify()
 {
 
     return r1cs_ppzksnark_verifier_strong_IC<toT>(
-        *verification_key,
-        *primary_input,
-        *proof
+        verification_key,
+        primary_input,
+        proof
     );
 }
 

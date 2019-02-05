@@ -48,11 +48,20 @@ void aggregate_serialize_deserialize_verify()
     std::cout << "Aggregating proofs" << std::endl;
     aggregated_tree.aggregate_inputs().aggregate_proofs();
 
+    std::cout << "Tests the streaming : ";
+    std::stringstream ss;
+    ss << aggregated_tree;
+    tree<dual_basT, 1> res;
+    ss >> res;
+    res.aggregate_inputs();
+    std::cout << res.verify() << std::endl;
+
     std::cout << "Serializing the proofs" << std::endl;
     unsigned char * serialized = aggregated_tree.to_string();
     
     std::cout << "Deserializing the proofs" << std::endl;
     auto deserialized = tree<dual_basT, 1>::from_string(serialized);
+    deserialized.aggregate_inputs();
 
     std::cout << "Valid proof : " << std::endl; 
     std::cout << deserialized.verify() << std::endl;

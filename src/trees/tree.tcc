@@ -15,12 +15,12 @@ std::ostream& operator<<(std::ostream& out, const tree<aggregation_system, N> &o
     using TreeT = tree<aggregation_system, N>;
 
     out << obj.node_values.leaf << OUTPUT_NEWLINE;
-    out << *obj.node_values.proof << OUTPUT_NEWLINE;
+    out << obj.node_values.proof << OUTPUT_NEWLINE;
 
     if (obj.node_values.leaf) 
     {
-        out << *obj.node_values.primary_input << OUTPUT_NEWLINE;
-        out << *obj.node_values.verification_key << OUTPUT_NEWLINE;
+        out << obj.node_values.primary_input[0] << OUTPUT_NEWLINE;
+        out << obj.node_values.verification_key << OUTPUT_NEWLINE;
 
     } else {
         for(size_t i=0; i<TreeT::arity; i++)
@@ -37,22 +37,24 @@ std::istream& operator>>(std::istream& in, tree<aggregation_system, N> &obj)
 {
     using TreeT = tree<aggregation_system, N>;
     using toT = typename TreeT::toT;
+    using aggregationT = typename TreeT::aggregationT;
 
-    in >> obj.node_values.leaf; libff::consume_OUTPUT_NEWLINE(in);
+    bool leaf;
+    in >> leaf; libff::consume_OUTPUT_NEWLINE(in);
 
     r1cs_ppzksnark_proof<toT> _proof;
     in >> _proof; libff::consume_OUTPUT_NEWLINE(in);
-    obj.node_values.proof = make_shared<decltype(_proof)>(_proof);
 
-    if (obj.node_values.leaf)
+    if (leaf)
     {
-        r1cs_ppzksnark_primary_input<toT> _input;
-        in >> _input; libff::consume_OUTPUT_NEWLINE(in);
-        obj.node_values.primary_input = make_shared<decltype(_input)>(_input);
+        r1cs_ppzksnark_primary_input<toT> _input(1);
+        in >> _input[0]; libff::consume_OUTPUT_NEWLINE(in);
 
         r1cs_ppzksnark_verification_key<toT> _vk;
         in >> _vk; libff::consume_OUTPUT_NEWLINE(in);
-        obj.node_values.verification_key = make_shared<decltype(_vk)>(_vk);
+
+        auto _node = node<aggregationT>::from_leaf(_input, _vk, _proof);
+        obj.node_values = _node;
 
     } else {
         obj.children.resize(TreeT::arity);
@@ -60,6 +62,9 @@ std::istream& operator>>(std::istream& in, tree<aggregation_system, N> &obj)
         {
             in >> obj.children[k]; libff::consume_OUTPUT_NEWLINE(in);
         }
+
+        auto _node = node<aggregationT>::from_aggregation(_proof);
+        obj.node_values = _node;
     }
 
     return in;
@@ -76,14 +81,16 @@ tree<aggregation_system, N> tree<aggregation_system, N>::from_string(unsigned ch
     stringstream ss;
     tree<aggregation_system, N> res;
 
-    std::cout << "Cast the buffer in a string, then a stringstream" << std::endl;
     /**
      * @brief Cast the buffer in a string, then a stringstream
      * 
      */
     memcpy(&buff_size, buff, offset);
+    buff_str.assign(buff, buff + buff_size - 1);
 
     ss << buff_str;
+
+    cout << "-------" << endl << buff_str << endl << "-------" << endl;
 
     ss.rdbuf()->pubseekpos(0, std::ios_base::in);
     ss.seekg(4*offset);
@@ -94,6 +101,7 @@ tree<aggregation_system, N> tree<aggregation_system, N>::from_string(unsigned ch
      */
     ss >> res;
 
+    return res;
 }
 
 template<typename aggregation_system, size_t N>
@@ -129,17 +137,16 @@ unsigned char * tree<aggregation_system, N>::to_string()
      * Writes the length of the buffer in a char[4]
      */
     uint32_t len = ss.tellp();
-    unsigned char len_str[offset];
-    memcpy(len_str, &len, offset);
 
     /**
      * @brief Copy the stream contents in the output buffer
      * 
      */
-    string buff_str = ss.str();
-    auto buff = new unsigned char[buff_str.size() + 1];
-    memcpy(buff, buff_str.c_str(), buff_str.size());
-    memcpy(buff, len_str, offset);
+    auto buff = new unsigned char[len+1];
+    std::string buff_str = ss.str();
+    memset(buff, '\0', len+1);
+    memcpy(buff, buff_str.c_str(), len);
+    memcpy(buff, &len, offset);
 
     return buff;
 }
@@ -148,23 +155,11 @@ template<typename aggregation_system, size_t N>
 tree<aggregation_system, N>& tree<aggregation_system, N>::aggregate_inputs()
 {
 
-#if NDEBUG
-    std::cout << "tree<aggregation_system, N>& tree<aggregation_system, N>::aggregate_inputs" << std::endl;
-# endif
-
     using TreeT = tree<aggregation_system, N>;
     using fromT = typename TreeT::fromT;
     using toT = typename TreeT::toT;
 
     auto aggregation = TreeT::aggregationT::get_instance();
-
-#if NDEBUG
-    if(node_values.leaf)
-    {
-        std::cout <<  "Called aggregate_input on a leaf node tree" << std::endl;
-        return *this;
-    }
-#endif
 
     for (size_t i=0; i<arity; i++)
     {
@@ -180,9 +175,9 @@ tree<aggregation_system, N>& tree<aggregation_system, N>::aggregate_inputs()
 
     for (size_t i=0; i<arity; i++)
     {
-        primary_inputs[i] = *children[i].node_values.primary_input;
-        verification_keys[i] = *children[i].node_values.verification_key;
-        proofs[i] = *children[i].node_values.proof;
+        primary_inputs[i] = children[i].node_values.primary_input;
+        verification_keys[i] = children[i].node_values.verification_key;
+        proofs[i] = children[i].node_values.proof;
     }
 
     node_values.set_inputs(
@@ -200,10 +195,6 @@ template<typename aggregation_system, size_t N>
 tree<aggregation_system, N>& tree<aggregation_system, N>::aggregate_proofs()
 {
 
-#if NDEBUG
-    std::cout << "tree<aggregation_system, N>& tree<aggregation_system, N>::aggregate_proofs" << std::endl;
-# endif
-
     using TreeT = tree<aggregation_system, N>;
     using fromT = typename TreeT::fromT;
     using toT = typename TreeT::toT;; 
@@ -214,9 +205,9 @@ tree<aggregation_system, N>& tree<aggregation_system, N>::aggregate_proofs()
 
     for (size_t i=0; i<arity; i++)
     {
-        primary_inputs[i] = *children[i].node_values.primary_input.get();
-        verification_keys[i] = *children[i].node_values.verification_key;
-        proofs[i] = *children[i].node_values.proof;
+        primary_inputs[i] = children[i].node_values.primary_input;
+        verification_keys[i] = children[i].node_values.verification_key;
+        proofs[i] = children[i].node_values.proof;
     }
 
     auto aggregation = TreeT::aggregationT::get_instance();
@@ -228,10 +219,6 @@ tree<aggregation_system, N>& tree<aggregation_system, N>::aggregate_proofs()
             proofs
         )
     );
-
-# if NDEBUG
-    std::cout << "node value set" << std::endl;
-# endif
 
     return *this;
 }

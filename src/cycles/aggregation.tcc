@@ -64,22 +64,11 @@ template<typename cycle, std::size_t fromN, std::size_t arityN>
 ) -> r1cs_ppzksnark_proof<toT>
 {
 
-#if NDEBUG
-    std::cout << "aggregation<cycle, fromN, arityN>::aggregate_proofs" << std::endl;
-    std::cout << primary_inputs.size() << " "; 
-    std::cout << verification_keys.size() << " ";
-    std::cout << proofs.size() << " " << std::endl;
-# endif
-
     circuit->generate_r1cs_witness(
         verification_keys,
         primary_inputs,
         proofs
     );
-
-#if NDEBUG
-    std::cout << circuit->pb.primary_input() << " : Was prim" << std::endl;
-# endif
 
     return r1cs_ppzksnark_prover<toT>(
         keypair->pk,
@@ -97,10 +86,6 @@ template<typename cycle, std::size_t fromN, std::size_t arityN>
 
 ) -> r1cs_ppzksnark_primary_input<toT>
 {
-
-#ifdef NDEBUG
-    std::cout << "aggregation<cycle, fromN, arityN>::aggregate_inputs" << std::endl;
-# endif
 
     circuit->generate_primary_inputs(
         verification_keys,

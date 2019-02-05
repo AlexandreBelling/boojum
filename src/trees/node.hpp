@@ -19,9 +19,16 @@ public:
 public:
 
     node() : leaf(false) {
-        verification_key.reset(
-            &aggregationT::get_instance().keypair->vk
-        );
+        verification_key = aggregationT::get_instance().keypair->vk;
+    }
+
+    node(
+        libsnark::r1cs_ppzksnark_proof<toT> &_proof
+    ) : 
+        leaf(false) 
+    {
+        proof               = _proof;
+        verification_key    = aggregationT::get_instance().keypair->vk;
     }
 
     node(
@@ -31,18 +38,18 @@ public:
     ):
         leaf(true) 
     {
-        primary_input       = std::make_shared<r1cs_ppzksnark_primary_input<toT>>(_primary_input);
-        verification_key    = std::make_shared<r1cs_ppzksnark_verification_key<toT>>(_verification_key);
-        proof               = std::make_shared<r1cs_ppzksnark_proof<toT>>(_proof);
+        primary_input       = _primary_input;
+        verification_key    = _verification_key;
+        proof               = _proof;
     }
 
 public:
 
     bool leaf;
     
-    std::shared_ptr<r1cs_ppzksnark_primary_input<toT>>      primary_input;
-    std::shared_ptr<r1cs_ppzksnark_verification_key<toT>>   verification_key;
-    std::shared_ptr<r1cs_ppzksnark_proof<toT>>              proof;
+    r1cs_ppzksnark_primary_input<toT> primary_input;
+    r1cs_ppzksnark_verification_key<toT> verification_key;
+    r1cs_ppzksnark_proof<toT> proof;
 
     static node<aggregationT> as_example(std::size_t num_constraints);
 
@@ -51,17 +58,19 @@ public:
         r1cs_ppzksnark_verification_key<toT>    _verification_key,
         r1cs_ppzksnark_proof<toT>               _proof
     ) {
-        return node(
+        node<aggregationT> res(
             _primary_input,
             _verification_key,
             _proof
         );
+
+        return res;
     };
 
-    static node<aggregationT> from_aggregationT(
+    static node<aggregationT> from_aggregation(
         r1cs_ppzksnark_proof<toT> _proof
     ) {
-        return node(
+        return node<aggregationT>(
             _proof
         );
     }
@@ -69,16 +78,14 @@ public:
     node<aggregationT>& set_inputs(
         r1cs_ppzksnark_primary_input<toT> new_primary_input
     ) {
-        primary_input = make_shared<
-            r1cs_ppzksnark_primary_input<toT>
-        >(new_primary_input);
+        primary_input = new_primary_input;
         return *this;
     }
 
     node<aggregationT>& set_proof(
         r1cs_ppzksnark_proof<toT> new_proof
     ) {
-        proof = make_shared<decltype(new_proof)>(new_proof);
+        proof = new_proof;
         return *this;
     }
 
