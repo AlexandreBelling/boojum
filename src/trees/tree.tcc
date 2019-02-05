@@ -90,8 +90,6 @@ tree<aggregation_system, N> tree<aggregation_system, N>::from_string(unsigned ch
 
     ss << buff_str;
 
-    cout << "-------" << endl << buff_str << endl << "-------" << endl;
-
     ss.rdbuf()->pubseekpos(0, std::ios_base::in);
     ss.seekg(4*offset);
 
@@ -121,17 +119,17 @@ unsigned char * tree<aggregation_system, N>::to_string()
      * 3) Identify the aggregation steps so that the deserializer can use the proper class
      * 4) Identify the arity of the aggregation
      */
-    unsigned char header[offset*4];
-    memset(header, '\0', offset*4);
-    memset(&header[offset], (uint32_t)0, 1);
-    memset(&header[offset*2], (uint32_t)N, 1);
-    memset(&header[offset*3], (uint32_t)arity, 1);
+    ss << "0000";
+    ss << "0000";
+    ss << N << "000";
+    ss << arity << "000";
 
     /**
      * @brief Stream the content of the tree
      * 
      */
-    ss << header << *this;
+    //ss << header;
+    ss << *this;
 
     /** 
      * Writes the length of the buffer in a char[4]
@@ -144,6 +142,7 @@ unsigned char * tree<aggregation_system, N>::to_string()
      */
     auto buff = new unsigned char[len+1];
     std::string buff_str = ss.str();
+
     memset(buff, '\0', len+1);
     memcpy(buff, buff_str.c_str(), len);
     memcpy(buff, &len, offset);
