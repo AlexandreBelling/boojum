@@ -88,6 +88,11 @@ tree<aggregation_system, N> tree<aggregation_system, N>::from_string(unsigned ch
     memcpy(&buff_size, buff, offset);
     buff_str.assign(buff, buff + buff_size - 1);
 
+    for (int q=0; q<16; q++)
+    {
+        printf("%x \n", buff_str[q]);
+    }
+
     ss << buff_str;
 
     ss.rdbuf()->pubseekpos(0, std::ios_base::in);
@@ -111,6 +116,8 @@ unsigned char * tree<aggregation_system, N>::to_string()
     const int zero = 0;
     stringstream ss;
 
+// TODO: Make it work with actual number
+
     /**
      * @brief Various headers metadata
      *  
@@ -119,10 +126,7 @@ unsigned char * tree<aggregation_system, N>::to_string()
      * 3) Identify the aggregation steps so that the deserializer can use the proper class
      * 4) Identify the arity of the aggregation
      */
-    ss << "0000";
-    ss << "0000";
-    ss << N << "000";
-    ss << arity << "000";
+    ss << "0000000000000000";
 
     /**
      * @brief Stream the content of the tree
@@ -146,6 +150,9 @@ unsigned char * tree<aggregation_system, N>::to_string()
     memset(buff, '\0', len+1);
     memcpy(buff, buff_str.c_str(), len);
     memcpy(buff, &len, offset);
+
+    memset(buff+2*offset, (uint32_t)N, 1);
+    memset(buff+3*offset, (uint32_t)arity, 1);
 
     return buff;
 }
