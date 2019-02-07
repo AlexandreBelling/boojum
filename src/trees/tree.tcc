@@ -88,11 +88,6 @@ tree<aggregation_system, N> tree<aggregation_system, N>::from_string(unsigned ch
     memcpy(&buff_size, buff, offset);
     buff_str.assign(buff, buff + buff_size - 1);
 
-    for (int q=0; q<16; q++)
-    {
-        printf("%x \n", buff_str[q]);
-    }
-
     ss << buff_str;
 
     ss.rdbuf()->pubseekpos(0, std::ios_base::in);
@@ -147,10 +142,9 @@ unsigned char * tree<aggregation_system, N>::to_string()
     auto buff = new unsigned char[len+1];
     std::string buff_str = ss.str();
 
-    memset(buff, '\0', len+1);
     memcpy(buff, buff_str.c_str(), len);
+    memset(buff,'\0', offset*4);
     memcpy(buff, &len, offset);
-
     memset(buff+2*offset, (uint32_t)N, 1);
     memset(buff+3*offset, (uint32_t)arity, 1);
 
@@ -203,7 +197,7 @@ tree<aggregation_system, N>& tree<aggregation_system, N>::aggregate_proofs()
 
     using TreeT = tree<aggregation_system, N>;
     using fromT = typename TreeT::fromT;
-    using toT = typename TreeT::toT;; 
+    using toT = typename TreeT::toT; 
 
     vector<r1cs_ppzksnark_primary_input<fromT>> primary_inputs(arity);
     vector<r1cs_ppzksnark_verification_key<fromT>> verification_keys(arity);

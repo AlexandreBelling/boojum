@@ -38,19 +38,15 @@ template<typename cycle, std::size_t fromN, std::size_t arityN>
 aggregation<cycle, fromN, arityN>& aggregation<cycle, fromN, arityN>::with_crs()
 {
 
-# ifndef NDEBUG
     if (setup_done())
     {
         load_crs();
     } else {
-# endif
 
         generator();
         save_crs();
-
-# ifndef NDEBUG        
+        
     }
-# endif
 
     return *this;
 }
