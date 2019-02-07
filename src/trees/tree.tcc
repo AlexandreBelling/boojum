@@ -75,7 +75,7 @@ template<typename aggregation_system, size_t N>
 tree<aggregation_system, N> tree<aggregation_system, N>::from_string(unsigned char * buff)
 {
 
-    uint32_t buff_size;
+    uint32_t buff_size = 0;
     string buff_str;
     size_t offset = sizeof(uint32_t);
     stringstream ss;
