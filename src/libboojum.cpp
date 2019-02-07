@@ -1,132 +1,164 @@
-# ifndef SNARK_IMPL_TCC_
-# define SNARK_IMPL_TCC_
+# ifndef SNARK_COMPILE
+# define SNARk_COMPILE
 
-# include <stdlib.h>
-# include "libboojum.h"
+# include <libff/common/profiling.hpp>
+# include <cycles/basic_aggregation_system.tcc>
+# include <trees/tree.hpp>
+# include <materials/trees.hpp>
 # include <iostream>
-# include "libff/common/profiling.hpp"
-# include "libff/algebra/curves/mnt/mnt4/mnt4_pp.hpp"
-# include "libff/algebra/curves/mnt/mnt6/mnt6_pp.hpp"
-# include "circuits/aggregator_circuit.hpp"
-# include "libsnark/relations/constraint_satisfaction_problems/r1cs/examples/r1cs_examples.hpp"
-# include "serialize.hpp"
-# include "tools.hpp"
-# include "node-proof.hpp"
 
-using curve_A_pp = libff::mnt4_pp;
-using curve_B_pp = libff::mnt6_pp;
-
-using Field_A = libff::Fr<curve_A_pp>;
-using Field_B = libff::Fr<curve_B_pp>;
-
-void initialize() {
+void initialize() 
+{
 
     // Decreases libsnark verbosity
     libff::inhibit_profiling_info = true;
     libff::inhibit_profiling_counters = true;
 
-    // Instantiate curve parameters
-    curve_A_pp::init_public_params();
-    curve_B_pp::init_public_params();
+    dual_basT::initialize_curves();
+    std::cout << "Done all curves" << std::endl;
 
-    auto& tool_AB = tools<curve_A_pp, curve_B_pp>::get_instance();
-    auto& tool_BA = tools<curve_B_pp, curve_A_pp>::get_instance();
-
-    // Instantiate the aggregation zksnark circuit cycle
-    tool_AB.initialize("ab");
-    tool_BA.initialize("ba");
+    dual_basT::build_circuits();
+    std::cout << "Done all circuits" << std::endl;
 
 }
 
 // Initialize should be run as a prerequisite of generation no matter what
-void run_generators(const char* path) {;
+void run_generators(const char* dir) 
+{
+    auto& forward = forwardT::get_instance();
+    auto& backward = backwardT::get_instance();
 
-    const std::string path_str = std::string(path);
+    string dir_str(dir);
 
-    auto& tool_AB = tools<curve_A_pp, curve_B_pp>::get_instance();
-    auto& tool_BA = tools<curve_B_pp, curve_A_pp>::get_instance();
-
-    // Fetch the CRS and save them if they were generated
-    tool_AB.fetch_crs("setup", false);
-    tool_BA.fetch_crs("setup", false);
-}
+    // Run generator or Load generated
+    forward.with_name("forward").at_dir(dir).with_crs();
+    backward.with_name("backward").at_dir(dir).with_crs();
+};
 
 void make_example_proof(
-    void* node_proof_buff
+    void* tree_buffer
 ) {
-    unsigned char *node_proof_char = reinterpret_cast<unsigned char *>(node_proof_buff);
-    
-    const size_t num_constraints = 50;
-    node_proof<curve_A_pp, curve_B_pp> example_AB(num_constraints);
-    std::string node_proof_str;
-    example_AB.to_string(node_proof_str);
-
-    // Unsafe passing to the output buffer
-    for(int i = 0; i < node_proof_str.size(); i++) {
-        node_proof_char[i] = node_proof_str[i];
-    }
+    unsigned char * tree_buffer_char = reinterpret_cast<unsigned char *>(tree_buffer);
+    memfreetree(tree_buffer_char);
+    tree_buffer_char = tree<dual_basT, 0>::as_example(50).to_string();
+    tree_buffer = (void *) &tree_buffer_char;
 }
 
-// Takes 2 nodes proof from other curve to make a node proof on curve
-template <typename curve, typename other_curve>
+template<std::size_t I>
+void aggregate_steps(unsigned char * left_node_char, unsigned char * right_node_char, unsigned char * output_node_char)
+{
+    std::vector<tree<dual_basT, I>> children(2);
+    children[0] = tree<dual_basT, I>::from_string(left_node_char);
+    children[1] = tree<dual_basT, I>::from_string(right_node_char);
+
+    auto aggregated_tree = tree<dual_basT, (I+1)%2>::from_aggregation(children);
+    aggregated_tree.aggregate_inputs().aggregate_proofs();
+    auto output_proof_char = aggregated_tree.to_string();
+
+    return;
+}
+
 void prove_aggregation(
     void* output_node_buff,
     void* left_node_buff,
     void* right_node_buff
 ) {
+
     unsigned char *output_node_char = reinterpret_cast<unsigned char *>(output_node_buff);
     unsigned char *left_node_char = reinterpret_cast<unsigned char *>(left_node_buff);
     unsigned char *right_node_char = reinterpret_cast<unsigned char *>(right_node_buff);
 
-    std::vector<node_proof<other_curve, curve>> children(2);
-    children[0].from_string(left_node_char);
-    children[1].from_string(right_node_char);
+    memfreetree(output_node_char);
 
-    auto output_proof = node_proof<curve, other_curve>::from_aggregation(children);
-    output_proof.to_string(output_node_char);
-}
+    std::vector<std::uint32_t> l_header = parse_header(left_node_char);
+    std::vector<std::uint32_t> r_header = parse_header(right_node_char);
 
-// External non-templated functions
-void prove_aggregation(
-    bool is_ab,
-    void* output_node_buff,
-    void* left_node_buff,
-    void* right_node_buff
-) {
-    if(is_ab) {
-        prove_aggregation<curve_A_pp, curve_B_pp>(
-            output_node_buff,
-            left_node_buff,
-            right_node_buff
-        );
-    } else {
-        prove_aggregation<curve_B_pp, curve_A_pp>(
-            output_node_buff,
-            left_node_buff,
-            right_node_buff
-        );
+    if(l_header[2] != r_header[2])
+    {
+        std::cout << "Input nodes do not have the same height" << std::endl;
+        return;
+    }
+
+    if(l_header[3] != r_header[3])
+    {
+        std::cout << "Input trees do not have the same arities" << std::endl;
+        return;
+    }
+
+    switch(l_header[1]){
+        case 0: 
+            break;
+
+        default:
+            std::cout << "Only zeroth type is supported yet" << std::endl;
+            return;
+    }
+
+    switch(l_header[3]){
+        case 2: 
+            break;
+
+        default:
+            std::cout << "Only arity 2 is supported yet" << std::endl;
+            return;
+    }
+
+    switch(l_header[2]){
+        case 0:
+            aggregate_steps<0>(left_node_char, right_node_char, output_node_char);
+            return;
+        case 1:
+            aggregate_steps<1>(left_node_char, right_node_char, output_node_char);
+            return;
+        default:
+            std::cout << "Only arity two is supported" << std::endl;
+            return;
     }
 }
 
-template<typename curve, typename other_curve>
+template<std::size_t I>
+bool verify(unsigned char * node_char)
+{
+    auto aggregated_tree = tree<dual_basT, I>::from_string(node_char);
+    return aggregated_tree.aggregate_inputs().verify();
+}
+
 bool verify(
     void* node_buff
 ) {
     unsigned char *node_char = reinterpret_cast<unsigned char *>(node_buff);
-    node_proof<other_curve, curve> node;
-    node.from_string(node_char);
-    return node.verify();
-}
+    std::vector<std::uint32_t> header = parse_header(node_char);
 
-bool verify(
-    bool is_ab,
-    void* node_buff
-){
-    if(is_ab){
-        return verify<curve_A_pp, curve_B_pp>(node_buff);
-    } else {
-        return verify<curve_B_pp, curve_A_pp>(node_buff);
+    switch(header[1]){
+        case 0: 
+            break;
+
+        default:
+            std::cout << "Only zeroth type is supported yet" << std::endl;
+            return false;
     }
+
+    switch(header[3]){
+        case 2: 
+            break;
+
+        default:
+            std::cout << "Only arity 2 is supported yet" << std::endl;
+            return false;
+    }
+
+    switch(header[2])
+    {
+        case 0:
+            return verify<0>(node_char);
+        case 1:
+            return verify<1>(node_char);
+        default:
+            std::cout << "Only arity two is supported" << std::endl;
+            return false;
+    }
+
+    return false;
 }
 
 #endif
