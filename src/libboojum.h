@@ -13,25 +13,21 @@
 extern "C" {
 #endif
 
-    void initialize(const char* path);
+    void initialize();
 
-    void run_generators(const char* path);
+    void run_generators(const char* dir);
 
     void make_example_proof(
-        void* proof_buff,
-        void* verification_key_buff,
-        void* primary_input_buff
+        void** tree_buffer
     );
 
     void prove_aggregation(
-        bool is_ab,
-        void* output_node_buff,
-        void* left_node_buff,
-        void* right_node_buff
+        void * left_node_buff,
+        void * right_node_buff, 
+        void ** output_node_buff
     );
 
     bool verify(
-        bool is_ab,
         void* node_buff
     );
 

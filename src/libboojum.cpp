@@ -36,16 +36,20 @@ void run_generators(const char* dir)
 };
 
 void make_example_proof(
-    void* tree_buffer
+    void** tree_buffer
 ) {
-    unsigned char * tree_buffer_char = reinterpret_cast<unsigned char *>(tree_buffer);
-    memfreetree(tree_buffer_char);
-    tree_buffer_char = tree<dual_basT, 0>::as_example(50).to_string();
-    tree_buffer = (void *) &tree_buffer_char;
+    unsigned char ** tree_buffer_char = reinterpret_cast<unsigned char **>(tree_buffer);
+    memfreetree(*tree_buffer_char);
+    *tree_buffer_char = tree<dual_basT, 0>::as_example(50).to_string();
+
 }
 
 template<std::size_t I>
-void aggregate_steps(unsigned char * left_node_char, unsigned char * right_node_char, unsigned char * output_node_char)
+void aggregate_steps(
+    unsigned char * left_node_char,
+    unsigned char * right_node_char, 
+    unsigned char ** output_node_char
+)
 {
     std::vector<tree<dual_basT, I>> children(2);
     children[0] = tree<dual_basT, I>::from_string(left_node_char);
@@ -53,22 +57,22 @@ void aggregate_steps(unsigned char * left_node_char, unsigned char * right_node_
 
     auto aggregated_tree = tree<dual_basT, (I+1)%2>::from_aggregation(children);
     aggregated_tree.aggregate_inputs().aggregate_proofs();
-    auto output_proof_char = aggregated_tree.to_string();
+    *output_node_char = aggregated_tree.to_string();
 
     return;
 }
 
 void prove_aggregation(
-    void* output_node_buff,
-    void* left_node_buff,
-    void* right_node_buff
+    void * left_node_buff,
+    void * right_node_buff, 
+    void ** output_node_buff
 ) {
 
-    unsigned char *output_node_char = reinterpret_cast<unsigned char *>(output_node_buff);
+    unsigned char **output_node_char = reinterpret_cast<unsigned char **>(output_node_buff);
     unsigned char *left_node_char = reinterpret_cast<unsigned char *>(left_node_buff);
     unsigned char *right_node_char = reinterpret_cast<unsigned char *>(right_node_buff);
 
-    memfreetree(output_node_char);
+    memfreetree(*output_node_char);
 
     std::vector<std::uint32_t> l_header = parse_header(left_node_char);
     std::vector<std::uint32_t> r_header = parse_header(right_node_char);

@@ -4,7 +4,7 @@
 # include <libff/common/profiling.hpp>
 # include <cycles/basic_aggregation_system.tcc>
 # include <trees/tree.hpp>
-//# include "gtest/gtest.h"
+# include "gtest/gtest.h"
 
 void initialize() 
 {
@@ -58,7 +58,7 @@ void aggregate_serialize_deserialize_verify()
 
     std::cout << "Serializing the proofs" << std::endl;
     unsigned char * serialized = aggregated_tree.to_string();
-    
+
     std::cout << "Deserializing the proofs" << std::endl;
     auto deserialized = tree<dual_basT, 1>::from_string(serialized);
     deserialized.aggregate_inputs();
