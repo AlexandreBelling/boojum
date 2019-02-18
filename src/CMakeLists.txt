@@ -21,7 +21,7 @@ target_link_libraries(
 )
 
 target_include_directories(
-  libboojum
+  boojum
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark
@@ -30,7 +30,7 @@ target_include_directories(
 )
 
 set_target_properties(
-  libboojum PROPERTIES
+  boojum PROPERTIES
 
   PUBLIC_HEADER libboojum.h
 )
