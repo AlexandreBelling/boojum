@@ -5,6 +5,7 @@
 # include <cycles/basic_aggregation_system.tcc>
 # include <trees/tree.hpp>
 # include "gtest/gtest.h"
+# include <materials/trees.hpp>
 
 void initialize() 
 {
@@ -58,6 +59,13 @@ void aggregate_serialize_deserialize_verify()
 
     std::cout << "Serializing the proofs" << std::endl;
     unsigned char * serialized = aggregated_tree.to_string();
+
+    std::vector<std::uint32_t> header = parse_header(serialized);
+    printf("Serialized header");
+    for(int q=0; q<4; q++)
+    {
+        printf("%x \n", header[q]);
+    }
 
     std::cout << "Deserializing the proofs" << std::endl;
     auto deserialized = tree<dual_basT, 1>::from_string(serialized);

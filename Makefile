@@ -15,4 +15,7 @@ clean-build:
 	mkdir -p build
 	rm -rf ./build/*
 
+build:
+	
+
 clean

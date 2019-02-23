@@ -6,6 +6,7 @@
 # include <trees/tree.hpp>
 # include <materials/trees.hpp>
 # include <iostream>
+# include <libboojum.h>
 
 void initialize() 
 {
@@ -33,15 +34,23 @@ void run_generators(const char* dir)
     // Run generator or Load generated
     forward.with_name("forward").at_dir(dir).with_crs();
     backward.with_name("backward").at_dir(dir).with_crs();
+
 };
 
 void make_example_proof(
     void** tree_buffer
 ) {
     unsigned char ** tree_buffer_char = reinterpret_cast<unsigned char **>(tree_buffer);
-    memfreetree(*tree_buffer_char);
-    *tree_buffer_char = tree<dual_basT, 0>::as_example(50).to_string();
+    //memfreetree(*tree_buffer_char);
+    auto new_value = tree<dual_basT, 0>::as_example(50).to_string();
+    tree_buffer_char[0] = new_value;
 
+    for(int q=0; q<16; q++)
+    {
+        printf("%x %x %x\n", tree_buffer, tree_buffer_char[0], tree_buffer_char[0][q]);
+    }
+
+    std::vector<std::uint32_t> header = parse_header(*tree_buffer_char);
 }
 
 template<std::size_t I>
@@ -68,14 +77,20 @@ void prove_aggregation(
     void ** output_node_buff
 ) {
 
-    unsigned char **output_node_char = reinterpret_cast<unsigned char **>(output_node_buff);
     unsigned char *left_node_char = reinterpret_cast<unsigned char *>(left_node_buff);
     unsigned char *right_node_char = reinterpret_cast<unsigned char *>(right_node_buff);
+    unsigned char **output_node_char = reinterpret_cast<unsigned char **>(output_node_buff);
 
-    memfreetree(*output_node_char);
+    //memfreetree(*output_node_char);
 
     std::vector<std::uint32_t> l_header = parse_header(left_node_char);
     std::vector<std::uint32_t> r_header = parse_header(right_node_char);
+
+    printf("Serialized header\n");
+    for(int q=0; q<16; q++)
+    {
+        printf("%x %x \n", right_node_char, right_node_char[q]);
+    }
 
     if(l_header[2] != r_header[2])
     {

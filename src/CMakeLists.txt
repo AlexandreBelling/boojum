@@ -1,7 +1,7 @@
 include_directories(.)
 
 add_library(
-  libboojum
+  boojum
 
   STATIC
 
@@ -9,13 +9,13 @@ add_library(
 )
 
 target_link_libraries(
-  libboojum
+  boojum
 
   snark
 )
 
 target_link_libraries(
-  libboojum
+  boojum
 
   ff
 )
