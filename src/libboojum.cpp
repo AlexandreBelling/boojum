@@ -86,12 +86,6 @@ void prove_aggregation(
     std::vector<std::uint32_t> l_header = parse_header(left_node_char);
     std::vector<std::uint32_t> r_header = parse_header(right_node_char);
 
-    printf("Serialized header\n");
-    for(int q=0; q<16; q++)
-    {
-        printf("%x %x \n", right_node_char, right_node_char[q]);
-    }
-
     if(l_header[2] != r_header[2])
     {
         std::cout << "Input nodes do not have the same height" << std::endl;
