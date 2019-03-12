@@ -174,4 +174,11 @@ bool verify(
     return false;
 }
 
+void memfree(
+    void* node_buff
+) {
+    unsigned char *node_char = reinterpret_cast<unsigned char *>(node_buff);
+    memfreetree(*node_char);
+}
+
 #endif

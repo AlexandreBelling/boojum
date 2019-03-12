@@ -31,6 +31,10 @@ extern "C" {
         void* node_buff
     );
 
+    void memfree(
+        void* node_buff
+    );
+
 #ifdef __cplusplus
 }
 #endif
