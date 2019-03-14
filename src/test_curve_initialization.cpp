@@ -4,7 +4,6 @@
 # include <libff/common/profiling.hpp>
 # include <cycles/basic_aggregation_system.tcc>
 # include <trees/tree.hpp>
-# include "gtest/gtest.h"
 # include <materials/trees.hpp>
 
 void initialize() 
