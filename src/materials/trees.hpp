@@ -8,16 +8,7 @@
 
 void memfreetree(unsigned char * buff)
 {
-    std::uint32_t len = 0;
-    std::size_t offset = sizeof(std::uint32_t);
-    std::memcpy(&len, buff, offset);
-
-    std::cout << "Freeing a vector of length " << len << std::endl;
-    
-    for(std::size_t i=0; i<len; i++)
-    {
-        free((void*) &buff[i]);
-    }
+    delete buff;
 }
 
 std::vector<std::uint32_t> parse_header(unsigned char * buff)
