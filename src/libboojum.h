@@ -35,6 +35,10 @@ extern "C" {
         void* node_buff
     );
 
+    int buff_len(
+        void* node_buff
+    );
+
 #ifdef __cplusplus
 }
 #endif

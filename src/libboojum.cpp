@@ -173,4 +173,12 @@ void memfree(
     memfreetree(node_char);
 }
 
+int buff_len(
+    void* node_buff
+) {
+    unsigned char *node_char = reinterpret_cast<unsigned char *>(node_buff);
+    std::vector<std::uint32_t> header = parse_header(node_char);
+    return (int)header[0];
+}
+
 #endif
